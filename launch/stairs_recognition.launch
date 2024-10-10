@@ -2,11 +2,14 @@
 <launch>
     
     <arg name="lidar_height_" default="1" />
-
+	<include file="$(find unitree_lidar_ros)/launch/run_without_rviz.launch" />
     <node pkg="stairs_recognition" type="stairs_recognition" name="stairs_recognition" output="screen">
-        <remap from="/rslidar_points" to="/rslidar_points" />
+        <!-- <remap from="/cloud_registered" to="/rslidar_points" /> -->
+        <remap from="/rslidar_points" to="/unilidar/cloud" />
 
-  	<param name="lidar_height" value="$(arg lidar_height_)"/>
+        <param name="lidar_height" value="$(arg lidar_height_)"/>
+        <param name="lidar_tf" value="unilidar_lidar"/>
+        <param name="det_angle" value="15"/>
 
     </node>
 

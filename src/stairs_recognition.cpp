@@ -50,7 +50,8 @@ using std::cos;
 using std::sin;
 
 double lidar_z_height = -1;
-
+std::string lidar_tf;
+int det_angle;
 
 
 
@@ -102,7 +103,7 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
             theta = theta - PI;
         }
 
-        if (theta < 15*PI/180 && theta>-15*PI/180)
+        if (theta < det_angle*PI/180 && theta>-det_angle*PI/180)
         // if (theta < 105*PI/180 && theta>75*PI/180)
         {
             laserCloudInROI->points.push_back(laserCloudIn->points[i]);
@@ -113,7 +114,8 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
     sensor_msgs::PointCloud2 forwardCloudMsg;
     pcl::toROSMsg(*laserCloudInROI, forwardCloudMsg);
     forwardCloudMsg.header.stamp = laserCloudMsg->header.stamp;
-    forwardCloudMsg.header.frame_id = "/rslidar";
+    forwardCloudMsg.header.frame_id = lidar_tf;
+    // forwardCloudMsg.header.frame_id = "/rslidar";
     pubForwardCloud.publish(forwardCloudMsg);
 
     std::vector<double> x_data,y_data;
@@ -157,11 +159,11 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "collect_datasets");
     ros::NodeHandle nh;
-
+    nh.getParam("/stairs_recognition/lidar_tf", lidar_tf);
+    nh.getParam("/stairs_recognition/det_angle", det_angle);
     
     ros::Subscriber subLaserCloud = nh.subscribe<sensor_msgs::PointCloud2>("/rslidar_points", 1, laserCloudHandler);
     pubForwardCloud = nh.advertise<sensor_msgs::PointCloud2>("/forward_points", 1);
-
 
     ros::MultiThreadedSpinner spinner(1); // Use x threads
     spinner.spin(); // spin() will not return until the node has been shutdown
